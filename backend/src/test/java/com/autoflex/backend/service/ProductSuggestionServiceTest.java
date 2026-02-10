@@ -166,4 +166,157 @@ class ProductionSuggestionServiceTest {
                 "A matéria-prima RM1 é o fator limitante");
         assertEquals(new BigDecimal("1000.00"), resp.totalValue());
     }
+
+    @Test
+    void shouldReturnEmptyWhenThereAreNoAssociations() {
+        // Arrange
+        ProductMaterialRepository repo = mock(ProductMaterialRepository.class);
+        ProductionSuggestionService service = new ProductionSuggestionService(repo);
+
+        when(repo.findAllWithProductAndRawMaterial()).thenReturn(List.of());
+
+        // Act
+        ProductionSuggestionResponse resp = service.suggest();
+
+        // Assert
+        assertNotNull(resp);
+        assertTrue(resp.items().isEmpty());
+        assertEquals(new BigDecimal("0"), resp.totalValue());
+    }
+
+    @Test
+    void shouldNotSuggestProductWhenStockIsInsufficient() {
+        // Arrange
+        ProductMaterialRepository repo = mock(ProductMaterialRepository.class);
+        ProductionSuggestionService service = new ProductionSuggestionService(repo);
+
+        Product product = Product.builder()
+                .id(UUID.randomUUID())
+                .code("P500")
+                .name("Heavy Product")
+                .price(new BigDecimal("100.00"))
+                .build();
+
+        RawMaterial rm = RawMaterial.builder()
+                .id(UUID.randomUUID())
+                .code("RM500")
+                .name("Rare Material")
+                .stockQuantity(new BigDecimal("5.000"))
+                .build();
+
+        ProductMaterial pm = ProductMaterial.builder()
+                .id(UUID.randomUUID())
+                .product(product)
+                .rawMaterial(rm)
+                .requiredQuantity(new BigDecimal("10.000")) // precisa de 10, mas só tem 5
+                .build();
+
+        when(repo.findAllWithProductAndRawMaterial()).thenReturn(List.of(pm));
+
+        // Act
+        ProductionSuggestionResponse resp = service.suggest();
+
+        // Assert
+        assertTrue(resp.items().isEmpty());
+        assertEquals(new BigDecimal("0"), resp.totalValue());
+    }
+
+    @Test
+    void shouldIgnoreInvalidRequiredQuantityZero() {
+        // Arrange
+        ProductMaterialRepository repo = mock(ProductMaterialRepository.class);
+        ProductionSuggestionService service = new ProductionSuggestionService(repo);
+
+        Product product = Product.builder()
+                .id(UUID.randomUUID())
+                .code("P600")
+                .name("Invalid BOM Product")
+                .price(new BigDecimal("100.00"))
+                .build();
+
+        RawMaterial rm = RawMaterial.builder()
+                .id(UUID.randomUUID())
+                .code("RM600")
+                .name("Material")
+                .stockQuantity(new BigDecimal("100.000"))
+                .build();
+
+        ProductMaterial pm = ProductMaterial.builder()
+                .id(UUID.randomUUID())
+                .product(product)
+                .rawMaterial(rm)
+                .requiredQuantity(new BigDecimal("0.000")) // inválido
+                .build();
+
+        when(repo.findAllWithProductAndRawMaterial()).thenReturn(List.of(pm));
+
+        // Act
+        ProductionSuggestionResponse resp = service.suggest();
+
+        // Assert
+        assertTrue(resp.items().isEmpty(), "requiredQuantity=0 should not generate a suggestion");
+        assertEquals(new BigDecimal("0"), resp.totalValue());
+    }
+
+    @Test
+    void shouldSuggestMultipleProductsWhenStocksDoNotConflict() {
+        // Arrange
+        ProductMaterialRepository repo = mock(ProductMaterialRepository.class);
+        ProductionSuggestionService service = new ProductionSuggestionService(repo);
+
+        // Produto A usa RM-A
+        RawMaterial rmA = RawMaterial.builder()
+                .id(UUID.randomUUID())
+                .code("RM-A")
+                .name("Material A")
+                .stockQuantity(new BigDecimal("50.000"))
+                .build();
+
+        Product productA = Product.builder()
+                .id(UUID.randomUUID())
+                .code("P-A")
+                .name("Product A")
+                .price(new BigDecimal("100.00"))
+                .build();
+
+        ProductMaterial pmA = ProductMaterial.builder()
+                .id(UUID.randomUUID())
+                .product(productA)
+                .rawMaterial(rmA)
+                .requiredQuantity(new BigDecimal("10.000")) // 50/10 = 5
+                .build();
+
+        // Produto B usa RM-B
+        RawMaterial rmB = RawMaterial.builder()
+                .id(UUID.randomUUID())
+                .code("RM-B")
+                .name("Material B")
+                .stockQuantity(new BigDecimal("21.000"))
+                .build();
+
+        Product productB = Product.builder()
+                .id(UUID.randomUUID())
+                .code("P-B")
+                .name("Product B")
+                .price(new BigDecimal("80.00"))
+                .build();
+
+                ProductMaterial pmB = ProductMaterial.builder()
+                .id(UUID.randomUUID())
+                .product(productB)
+                .rawMaterial(rmB)
+                .requiredQuantity(new BigDecimal("7.000")) // 21/7 = 3
+                .build();
+
+        when(repo.findAllWithProductAndRawMaterial()).thenReturn(List.of(pmA, pmB));
+
+        // Act
+        ProductionSuggestionResponse resp = service.suggest();
+
+        // Assert
+        assertEquals(2, resp.items().size(), "Both products should be suggested since stocks don't overlap");
+
+        // Total esperado: A => 5*100 = 500; B => 3*80 = 240; total=740
+        assertEquals(new BigDecimal("740.00"), resp.totalValue());
+    }
 }
