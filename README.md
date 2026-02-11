@@ -13,7 +13,7 @@ Sistema de controle de estoque industrial para gerenciamento de produtos, materi
 
 **Frontend**
 - React 19, TypeScript, Vite
-- Material UI (MUI), fonte Inter
+- Material UI (MUI)
 - Redux Toolkit para gerenciamento de estado
 - React Router para navegacao
 
