@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { CssBaseline, ThemeProvider, createTheme } from "@mui/material";
 import Layout from "./components/Layout";
 import { Health } from "./pages/Health";
+import Products from "./pages/Products";
+import RawMaterials from "./pages/RawMaterials";
 
 const theme = createTheme({
   palette: {
@@ -21,9 +23,9 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route element={<Layout />}>
-            <Route path="/products" element={<PlaceholderPage title="Produtos" />} />
-            <Route path="/raw-materials" element={<PlaceholderPage title="Matérias-Primas" />} />
-            <Route path="/suggestions" element={<PlaceholderPage title="Sugestões de Produção" />} />
+            <Route path="/products" element={<Products />} />
+            <Route path="/raw-materials" element={<RawMaterials />} />
+            <Route path="/suggestions" element={<PlaceholderPage title="Sugestoes de Producao" />} />
             <Route path="/health" element={<Health />} />
             <Route path="*" element={<Navigate to="/products" replace />} />
           </Route>

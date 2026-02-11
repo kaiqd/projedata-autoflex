@@ -1,9 +1,12 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { useDispatch, useSelector, type TypedUseSelectorHook } from "react-redux";
+import productsReducer from "./productsSlice";
+import rawMaterialsReducer from "./rawMaterialsSlice";
 
 export const store = configureStore({
   reducer: {
-    // slices serão adicionados nas próximas fases
+    products: productsReducer,
+    rawMaterials: rawMaterialsReducer,
   },
 });
 
