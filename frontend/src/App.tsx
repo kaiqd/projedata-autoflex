@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { CssBaseline, ThemeProvider, createTheme } from "@mui/material";
 import Layout from "./components/Layout";
+import GlobalSnackbar from "./components/GlobalSnackbar";
 import { Health } from "./pages/Health";
 import Products from "./pages/Products";
 import RawMaterials from "./pages/RawMaterials";
@@ -31,6 +32,7 @@ export default function App() {
           </Route>
         </Routes>
       </BrowserRouter>
+      <GlobalSnackbar />
     </ThemeProvider>
   );
 }

@@ -2,11 +2,13 @@ import { configureStore } from "@reduxjs/toolkit";
 import { useDispatch, useSelector, type TypedUseSelectorHook } from "react-redux";
 import productsReducer from "./productsSlice";
 import rawMaterialsReducer from "./rawMaterialsSlice";
+import notificationReducer from "./notificationSlice";
 
 export const store = configureStore({
   reducer: {
     products: productsReducer,
     rawMaterials: rawMaterialsReducer,
+    notification: notificationReducer,
   },
 });
 

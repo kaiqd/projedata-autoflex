@@ -26,6 +26,7 @@ import {
   updateProduct,
   deleteProduct,
 } from "../store/productsSlice";
+import { showNotification } from "../store/notificationSlice";
 import type { Product, ProductRequest } from "../types";
 import ProductForm from "../components/ProductForm";
 import ConfirmDialog from "../components/ConfirmDialog";
@@ -55,19 +56,31 @@ export default function Products() {
   };
 
   const handleSave = async (data: ProductRequest) => {
-    if (editing) {
-      await dispatch(updateProduct({ id: editing.id, data }));
-    } else {
-      await dispatch(createProduct(data));
+    try {
+      if (editing) {
+        await dispatch(updateProduct({ id: editing.id, data })).unwrap();
+        dispatch(showNotification({ message: "Produto atualizado com sucesso", severity: "success" }));
+      } else {
+        await dispatch(createProduct(data)).unwrap();
+        dispatch(showNotification({ message: "Produto criado com sucesso", severity: "success" }));
+      }
+      setFormOpen(false);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Erro ao salvar produto";
+      dispatch(showNotification({ message, severity: "error" }));
     }
-    setFormOpen(false);
   };
 
   const handleDeleteConfirm = async () => {
-    if (deleteTarget) {
-      await dispatch(deleteProduct(deleteTarget.id));
-      setDeleteTarget(null);
+    if (!deleteTarget) return;
+    try {
+      await dispatch(deleteProduct(deleteTarget.id)).unwrap();
+      dispatch(showNotification({ message: "Produto excluido com sucesso", severity: "success" }));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Erro ao excluir produto";
+      dispatch(showNotification({ message, severity: "error" }));
     }
+    setDeleteTarget(null);
   };
 
   const formatPrice = (value: number) =>
@@ -84,7 +97,7 @@ export default function Products() {
   return (
     <Box>
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-        <Typography variant="h5">Produtos</Typography>
+        <Typography variant="h5" sx={{ fontWeight: 600 }}>Produtos</Typography>
         <Button variant="contained" startIcon={<AddIcon />} onClick={handleCreate}>
           Novo Produto
         </Button>
@@ -92,30 +105,30 @@ export default function Products() {
 
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-      <TableContainer component={Paper}>
-        <Table>
+      <TableContainer component={Paper} sx={{ overflowX: "auto" }}>
+        <Table sx={{ minWidth: 500 }}>
           <TableHead>
             <TableRow>
-              <TableCell>Codigo</TableCell>
-              <TableCell>Nome</TableCell>
-              <TableCell align="right">Preco</TableCell>
-              <TableCell align="center">Acoes</TableCell>
+              <TableCell sx={{ fontWeight: 600 }}>Codigo</TableCell>
+              <TableCell sx={{ fontWeight: 600 }}>Nome</TableCell>
+              <TableCell sx={{ fontWeight: 600 }} align="right">Preco</TableCell>
+              <TableCell sx={{ fontWeight: 600 }} align="center">Acoes</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {items.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} align="center">
+                <TableCell colSpan={4} align="center" sx={{ color: "text.secondary" }}>
                   Nenhum produto cadastrado.
                 </TableCell>
               </TableRow>
             ) : (
               items.map((p) => (
-                <TableRow key={p.id}>
+                <TableRow key={p.id} hover>
                   <TableCell>{p.code}</TableCell>
                   <TableCell>{p.name}</TableCell>
                   <TableCell align="right">{formatPrice(p.price)}</TableCell>
-                  <TableCell align="center">
+                  <TableCell align="center" sx={{ whiteSpace: "nowrap" }}>
                     <Tooltip title="Materias-Primas">
                       <IconButton size="small" color="secondary" onClick={() => setMaterialsTarget(p)}>
                         <ScienceIcon fontSize="small" />

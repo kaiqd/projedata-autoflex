@@ -10,6 +10,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Tooltip,
   Typography,
   CircularProgress,
   Alert,
@@ -24,6 +25,7 @@ import {
   updateRawMaterial,
   deleteRawMaterial,
 } from "../store/rawMaterialsSlice";
+import { showNotification } from "../store/notificationSlice";
 import type { RawMaterial, RawMaterialRequest } from "../types";
 import RawMaterialForm from "../components/RawMaterialForm";
 import ConfirmDialog from "../components/ConfirmDialog";
@@ -51,19 +53,31 @@ export default function RawMaterials() {
   };
 
   const handleSave = async (data: RawMaterialRequest) => {
-    if (editing) {
-      await dispatch(updateRawMaterial({ id: editing.id, data }));
-    } else {
-      await dispatch(createRawMaterial(data));
+    try {
+      if (editing) {
+        await dispatch(updateRawMaterial({ id: editing.id, data })).unwrap();
+        dispatch(showNotification({ message: "Materia-prima atualizada com sucesso", severity: "success" }));
+      } else {
+        await dispatch(createRawMaterial(data)).unwrap();
+        dispatch(showNotification({ message: "Materia-prima criada com sucesso", severity: "success" }));
+      }
+      setFormOpen(false);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Erro ao salvar materia-prima";
+      dispatch(showNotification({ message, severity: "error" }));
     }
-    setFormOpen(false);
   };
 
   const handleDeleteConfirm = async () => {
-    if (deleteTarget) {
-      await dispatch(deleteRawMaterial(deleteTarget.id));
-      setDeleteTarget(null);
+    if (!deleteTarget) return;
+    try {
+      await dispatch(deleteRawMaterial(deleteTarget.id)).unwrap();
+      dispatch(showNotification({ message: "Materia-prima excluida com sucesso", severity: "success" }));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Erro ao excluir materia-prima";
+      dispatch(showNotification({ message, severity: "error" }));
     }
+    setDeleteTarget(null);
   };
 
   const formatQuantity = (value: number) =>
@@ -80,7 +94,7 @@ export default function RawMaterials() {
   return (
     <Box>
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-        <Typography variant="h5">Materias-Primas</Typography>
+        <Typography variant="h5" sx={{ fontWeight: 600 }}>Materias-Primas</Typography>
         <Button variant="contained" startIcon={<AddIcon />} onClick={handleCreate}>
           Nova Materia-Prima
         </Button>
@@ -88,36 +102,40 @@ export default function RawMaterials() {
 
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-      <TableContainer component={Paper}>
-        <Table>
+      <TableContainer component={Paper} sx={{ overflowX: "auto" }}>
+        <Table sx={{ minWidth: 500 }}>
           <TableHead>
             <TableRow>
-              <TableCell>Codigo</TableCell>
-              <TableCell>Nome</TableCell>
-              <TableCell align="right">Estoque</TableCell>
-              <TableCell align="center">Acoes</TableCell>
+              <TableCell sx={{ fontWeight: 600 }}>Codigo</TableCell>
+              <TableCell sx={{ fontWeight: 600 }}>Nome</TableCell>
+              <TableCell sx={{ fontWeight: 600 }} align="right">Estoque</TableCell>
+              <TableCell sx={{ fontWeight: 600 }} align="center">Acoes</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {items.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} align="center">
+                <TableCell colSpan={4} align="center" sx={{ color: "text.secondary" }}>
                   Nenhuma materia-prima cadastrada.
                 </TableCell>
               </TableRow>
             ) : (
               items.map((m) => (
-                <TableRow key={m.id}>
+                <TableRow key={m.id} hover>
                   <TableCell>{m.code}</TableCell>
                   <TableCell>{m.name}</TableCell>
                   <TableCell align="right">{formatQuantity(m.stockQuantity)}</TableCell>
-                  <TableCell align="center">
-                    <IconButton size="small" onClick={() => handleEdit(m)}>
-                      <EditIcon fontSize="small" />
-                    </IconButton>
-                    <IconButton size="small" color="error" onClick={() => setDeleteTarget(m)}>
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
+                  <TableCell align="center" sx={{ whiteSpace: "nowrap" }}>
+                    <Tooltip title="Editar">
+                      <IconButton size="small" onClick={() => handleEdit(m)}>
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Excluir">
+                      <IconButton size="small" color="error" onClick={() => setDeleteTarget(m)}>
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
                   </TableCell>
                 </TableRow>
               ))

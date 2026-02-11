@@ -50,7 +50,7 @@ export default function Suggestions() {
   return (
     <Box>
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-        <Typography variant="h5">Sugestoes de Producao</Typography>
+        <Typography variant="h5" sx={{ fontWeight: 600 }}>Sugestoes de Producao</Typography>
         <Button variant="outlined" startIcon={<RefreshIcon />} onClick={load}>
           Atualizar
         </Button>
@@ -66,20 +66,20 @@ export default function Suggestions() {
 
       {data && data.items.length > 0 && (
         <>
-          <TableContainer component={Paper}>
-            <Table>
+          <TableContainer component={Paper} sx={{ overflowX: "auto" }}>
+            <Table sx={{ minWidth: 600 }}>
               <TableHead>
                 <TableRow>
-                  <TableCell>Codigo</TableCell>
-                  <TableCell>Produto</TableCell>
-                  <TableCell align="right">Preco Unitario</TableCell>
-                  <TableCell align="right">Quantidade</TableCell>
-                  <TableCell align="right">Valor Total</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Codigo</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Produto</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }} align="right">Preco Unitario</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }} align="right">Quantidade</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }} align="right">Valor Total</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {data.items.map((item) => (
-                  <TableRow key={item.productId}>
+                  <TableRow key={item.productId} hover>
                     <TableCell>{item.productCode}</TableCell>
                     <TableCell>{item.productName}</TableCell>
                     <TableCell align="right">{formatCurrency(item.unitPrice)}</TableCell>

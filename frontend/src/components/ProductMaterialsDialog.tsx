@@ -16,6 +16,8 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import { productMaterialsApi } from "../api/productMaterials";
 import { rawMaterialsApi } from "../api/rawMaterials";
+import { useAppDispatch } from "../store";
+import { showNotification } from "../store/notificationSlice";
 import type { Product, RawMaterial, ProductMaterialItemRequest } from "../types";
 
 interface Row {
@@ -30,6 +32,7 @@ interface Props {
 }
 
 export default function ProductMaterialsDialog({ open, product, onClose }: Props) {
+  const dispatch = useAppDispatch();
   const [rows, setRows] = useState<Row[]>([]);
   const [allMaterials, setAllMaterials] = useState<RawMaterial[]>([]);
   const [loading, setLoading] = useState(false);
@@ -76,13 +79,20 @@ export default function ProductMaterialsDialog({ open, product, onClose }: Props
   const handleSave = async () => {
     if (!product) return;
     setSaving(true);
-    const items: ProductMaterialItemRequest[] = rows
-      .filter((r) => r.rawMaterialId && r.requiredQuantity > 0)
-      .map((r) => ({ rawMaterialId: r.rawMaterialId, requiredQuantity: r.requiredQuantity }));
+    try {
+      const items: ProductMaterialItemRequest[] = rows
+        .filter((r) => r.rawMaterialId && r.requiredQuantity > 0)
+        .map((r) => ({ rawMaterialId: r.rawMaterialId, requiredQuantity: r.requiredQuantity }));
 
-    await productMaterialsApi.replace(product.id, items);
-    setSaving(false);
-    onClose();
+      await productMaterialsApi.replace(product.id, items);
+      dispatch(showNotification({ message: "Materias-primas atualizadas com sucesso", severity: "success" }));
+      onClose();
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Erro ao salvar materias-primas";
+      dispatch(showNotification({ message, severity: "error" }));
+    } finally {
+      setSaving(false);
+    }
   };
 
   const usedIds = rows.map((r) => r.rawMaterialId);
