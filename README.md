@@ -8,6 +8,7 @@ Sistema de controle de estoque industrial para gerenciamento de produtos, materi
 - Java 17, Spring Boot 4.0, Spring Data JPA, Hibernate
 - PostgreSQL 15, Flyway (migracao de banco)
 - Bean Validation, Lombok
+- SpringDoc OpenAPI (Swagger UI)
 - Testes unitarios com JUnit
 
 **Frontend**
@@ -41,7 +42,7 @@ cd backend
 ./mvnw spring-boot:run
 ```
 
-A API estara disponivel em `http://localhost:8080`.
+A API estara disponivel em `http://localhost:8080`. A documentacao Swagger UI pode ser acessada em `http://localhost:8080/swagger-ui.html`.
 
 ### 3. Frontend
 
