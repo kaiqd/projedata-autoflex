@@ -4,17 +4,17 @@ import Layout from "./components/Layout";
 import { Health } from "./pages/Health";
 import Products from "./pages/Products";
 import RawMaterials from "./pages/RawMaterials";
+import Suggestions from "./pages/Suggestions";
 
 const theme = createTheme({
+  typography: {
+    fontFamily: "'Inter', sans-serif",
+  },
   palette: {
     primary: { main: "#1976d2" },
     secondary: { main: "#9c27b0" },
   },
 });
-
-function PlaceholderPage({ title }: { title: string }) {
-  return <h2>{title}</h2>;
-}
 
 export default function App() {
   return (
@@ -25,7 +25,7 @@ export default function App() {
           <Route element={<Layout />}>
             <Route path="/products" element={<Products />} />
             <Route path="/raw-materials" element={<RawMaterials />} />
-            <Route path="/suggestions" element={<PlaceholderPage title="Sugestoes de Producao" />} />
+            <Route path="/suggestions" element={<Suggestions />} />
             <Route path="/health" element={<Health />} />
             <Route path="*" element={<Navigate to="/products" replace />} />
           </Route>
