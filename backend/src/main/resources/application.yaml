@@ -3,16 +3,16 @@ spring:
     name: backend
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/autoflex
-    username: autoflex
-    password: autoflex
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/autoflex}
+    username: ${DATABASE_USERNAME:autoflex}
+    password: ${DATABASE_PASSWORD:autoflex}
     driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
       ddl-auto: validate
     open-in-view: false
-    show-sql: true
+    show-sql: ${SHOW_SQL:true}
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
@@ -23,9 +23,9 @@ spring:
     locations: classpath:db/migration
 
 server:
-  port: 8080
+  port: ${PORT:8080}
 
 logging:
   level:
     org.springframework.web: INFO
-    org.hibernate.SQL: DEBUG
+    org.hibernate.SQL: ${LOG_SQL_LEVEL:DEBUG}
